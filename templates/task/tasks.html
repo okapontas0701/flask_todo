@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block content %}
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    <div>
+      {% for category, message in messages %}
+        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+          {{ message }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+{% endwith %}
+
+<div class="container mt-5">
+    <h1 class="mb-4">タスク一覧</h1>
+    <!-- 検索フォーム -->
+<form method="GET" action="{{ url_for('list_tasks') }}" class="mb-4">
+  <div class="input-group">
+      <input type="text" name="search" class="form-control" placeholder="タスクを検索" value="{{ search_query }}">
+      <button class="btn btn-outline-secondary" type="submit">検索</button>
+  </div>
+</form>
+{% if tasks %}
+<table class="table table-bordered table-striped">
+    <!-- テーブルの内容 -->
+    <table class="table table-bordered table-striped">
+      <thead class="table-dark">
+          <tr>
+              <th>ユーザー名</th>
+              <th>タイトル</th>
+              <th>詳細</th>
+              <th>状態</th>
+              <th>期限</th>
+              <th>作成日時</th>
+              <th>編集</th>
+              <th>レビュー数</th>
+          </tr>
+      </thead>
+      <tbody>
+          {% for task in tasks %}
+          <tr>
+              <td>{{ task.user.name }}</td>
+              <td>{{ task.title }}</td>
+              <td>
+                  <a href="{{ url_for('show_task', task_id=task.id) }}" class="text-decoration-none">
+                      詳細
+                  </a>
+              </td>
+              <td>{{ task.status }}</td>
+              <td>{{ task.due_date.strftime('%Y-%m-%d %H:%M') if task.due_date else 'なし' }}</td>
+              <td>{{ task.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+              <td>
+                  {% if task.user_id == current_user.id %} <!-- 編集権限の確認 -->
+                  <a href="{{ url_for('edit_task', task_id=task.id) }}" class="btn btn-warning btn-sm">
+                      編集
+                  </a>
+                  {% else %}
+                  <button class="btn btn-secondary btn-sm" disabled>編集不可</button>
+                  {% endif %}
+              </td>
+              <!-- レビュー数 -->
+              <td>{{ task.reviews|length }}</td>
+          </tr>
+          {% endfor %}
+      </tbody>        
+  </table>
+</table>
+{% else %}
+<p>該当するタスクは見つかりませんでした。</p>
+{% endif %}
+</div>
+
+{% endblock %}

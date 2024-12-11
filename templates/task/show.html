@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-5">
+    <h1 class="mb-4">タスク詳細</h1>
+
+    <!-- フラッシュメッセージ -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <div>
+        {% for category, message in messages %}
+        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    {% endwith %}
+
+    <!-- タスク詳細 -->
+    <div class="card mb-4">
+        <div class="card-header">
+            {{ task.title }}
+        </div>
+        <div class="card-body">
+            <p><strong>ユーザー名:</strong> {{ task.user.name }}</p>
+            <p><strong>詳細:</strong> {{ task.description or 'なし' }}</p>
+            <p><strong>状態:</strong> {{ task.status }}</p>
+            <p><strong>期限:</strong> {{ task.due_date.strftime('%Y-%m-%d %H:%M') if task.due_date else 'なし' }}</p>
+            <p><strong>作成日時:</strong> {{ task.created_at.strftime('%Y-%m-%d %H:%M') }}</p>
+        </div>
+    </div>
+
+    <!-- 戻る・削除ボタン -->
+    <div class="mb-4">
+        <a href="{{ url_for('list_tasks') }}" class="btn btn-secondary">戻る</a>
+        {% if current_user.id == task.user_id %}
+        <form action="{{ url_for('delete_task', task_id=task.id) }}" 
+              method="POST" 
+              style="display:inline;"
+              onsubmit="return confirm('本当にこのタスクを削除しますか？');">
+            <button type="submit" class="btn btn-danger">削除</button>
+        </form>
+        {% endif %}
+    </div>
+
+    <!-- レビュー投稿と表示 -->
+    <div class="row">
+        <!-- レビュー投稿フォーム -->
+        <div class="col-md-6">
+            <h2 class="mb-4">レビューを投稿</h2>
+            <form id="reviewForm" action="{{ url_for('create_review', task_id=task.id) }}" method="POST" class="needs-validation" novalidate>
+                <div class="mb-3">
+                    <label for="reviewTitle" class="form-label">タイトル</label>
+                    <input type="text" id="reviewTitle" name="title" class="form-control" required>
+                    <div class="invalid-feedback">レビューのタイトルを入力してください。</div>
+                </div>
+                <div class="mb-3">
+                    <label for="reviewContent" class="form-label">内容</label>
+                    <textarea id="reviewContent" name="content" class="form-control" rows="3" required></textarea>
+                    <div class="invalid-feedback">レビュー内容を入力してください。</div>
+                </div>
+                <button type="submit" class="btn btn-primary">投稿</button>
+            </form>
+        </div>
+
+        <!-- 投稿されたレビュー -->
+        <div class="col-md-6">
+            <h2 class="mb-4">投稿されたレビュー</h2>
+            {% if task.reviews %}
+            <ul class="list-group">
+                {% for review in task.reviews %}
+                <li class="list-group-item">
+                    <h5>{{ review.title }}</h5>
+                    <p>{{ review.content }}</p>
+                    <p class="text-muted">
+                        投稿者: {{ review.user.name }} | 投稿日時: {{ review.created_at.strftime('%Y-%m-%d %H:%M') }}
+                    </p>
+                    {% if review.user_id == current_user.id %}
+                    <!-- レビュー削除ボタン -->
+                    <form action="{{ url_for('delete_review', review_id=review.id) }}" method="POST" style="display:inline;" onsubmit="return confirm('本当にこのレビューを削除しますか？');">
+                        <button type="submit" class="btn btn-danger btn-sm">削除</button>
+                    </form>
+                    {% endif %}
+                </li>
+                {% endfor %}
+            </ul>
+            {% else %}
+            <p>レビューはまだ投稿されていません。</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- フォームバリデーション用スクリプト -->
+<script>
+    (function () {
+        'use strict';
+        const form = document.getElementById('reviewForm');
+        form.addEventListener('submit', function (event) {
+            if (!form.checkValidity()) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+            form.classList.add('was-validated');
+        }, false);
+    })();
+</script>
+{% endblock %}

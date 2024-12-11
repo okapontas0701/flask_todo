@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h1 class="mb-4">タスク編集</h1>
+
+<!-- エラーメッセージの表示 -->
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        {% for category, message in messages %}
+            <div class="alert alert-{{ category }}" role="alert">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+{% endwith %}
+
+<div class="container mt-5">
+    <form id="taskForm" method="POST" class="needs-validation" novalidate>
+        <!-- タイトル -->
+        <div class="mb-3">
+            <label for="title" class="form-label">タイトル</label>
+            <input type="text" id="title" name="title" class="form-control"
+                   value="{{ task.title }}" required>
+            <div class="invalid-feedback">タイトルを入力してください。</div>
+        </div>
+
+        <!-- 詳細 -->
+        <div class="mb-3">
+            <label for="description" class="form-label">詳細</label>
+            <textarea id="description" name="description" class="form-control" required>{{ task.description }}</textarea>
+            <div class="invalid-feedback">詳細を入力してください。</div>
+        </div>
+
+        <!-- 状態 -->
+        <div class="mb-3">
+            <label for="status" class="form-label">状態</label>
+            <select id="status" name="status" class="form-select" required>
+                <option value="" disabled>選択してください</option>
+                <option value="pending" {% if task.status == 'pending' %}selected{% endif %}>Pending</option>
+                <option value="in_progress" {% if task.status == 'in_progress' %}selected{% endif %}>In Progress</option>
+                <option value="completed" {% if task.status == 'completed' %}selected{% endif %}>Completed</option>
+            </select>
+            <div class="invalid-feedback">状態を選択してください。</div>
+        </div>
+
+        <!-- 期限 -->
+        <div class="mb-3">
+            <label for="due_date" class="form-label">期限</label>
+            <input type="datetime-local" id="due_date" name="due_date" class="form-control"
+                   value="{{ task.due_date.strftime('%Y-%m-%dT%H:%M') if task.due_date else '' }}" required>
+            <div class="invalid-feedback">有効な日時を入力してください。</div>
+        </div>
+
+        <!-- ボタン -->
+        <button type="submit" class="btn btn-primary">更新</button>
+        <a href="{{ url_for('list_tasks') }}" class="btn btn-secondary">戻る</a>
+    </form>
+</div>
+
+<!-- バリデーション用のスクリプト -->
+<script>
+    (function () {
+        'use strict';
+
+        const form = document.getElementById('taskForm');
+        form.addEventListener('submit', function (event) {
+            if (!form.checkValidity()) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+            form.classList.add('was-validated');
+        }, false);
+    })();
+</script>
+
+{% endblock %}

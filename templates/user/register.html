@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h1>ユーザー登録</h1>
+<!-- エラーメッセージの表示 -->
+{% if error %}
+<div class="alert alert-danger" role="alert">
+    {{ error }}
+</div>
+{% endif %}
+    <form action="/register" method="POST" id="registrationForm" class="needs-validation" novalidate>
+        <div class="mb-3">
+            <label for="username" class="form-label">ユーザー名</label>
+            <input 
+                type="text" 
+                name="name" 
+                class="form-control" 
+                id="username" 
+                required 
+                maxlength="50"
+                placeholder="ユーザー名を入力してください">
+            <div class="invalid-feedback">
+                ユーザー名は50文字以下で入力してください。
+            </div>
+        </div>
+        <div class="mb-3">
+            <label for="password" class="form-label">パスワード</label>
+            <input 
+                type="password" 
+                name="password" 
+                class="form-control" 
+                id="password" 
+                required 
+                placeholder="パスワードを入力してください">
+            <div class="invalid-feedback">
+                パスワードを入力してください。
+            </div>
+        </div>
+        <div class="mb-3">
+            <label for="role" class="form-label">役職</label>
+            <select name="role" class="form-select" id="role" required maxlength="20">
+                <option value="" selected disabled>選択してください</option>
+                <option value="staff">staff</option>
+            </select>
+            <div class="invalid-feedback">
+                役職を選択してください（最大20文字）。
+            </div>
+        </div>
+        <div class="mb-3">
+            <label for="email" class="form-label">Email アドレス</label>
+            <input 
+                type="email" 
+                name="email" 
+                class="form-control" 
+                id="email" 
+                required 
+                maxlength="120"
+                placeholder="example@example.com">
+            <div class="invalid-feedback">
+                有効なメールアドレスを入力してください（最大120文字）。
+            </div>
+        </div>
+        <button type="submit" class="btn btn-primary">登録</button>
+    </form>
+
+{% endblock %}

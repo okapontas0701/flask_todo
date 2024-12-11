@@ -1,0 +1,152 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h1 class="mb-4">マイページ</h1>
+
+<!-- ユーザー情報 -->
+<div class="card mb-4">
+    <div class="card-body">
+        <h5 class="card-title">{{ user.name }}</h5>
+        <p class="card-text"><strong>Email:</strong> {{ user.email }}</p>
+        <p class="card-text"><strong>役職:</strong> {{ user.role }}</p>
+    </div>
+</div>
+
+<!-- ダッシュボード -->
+<div class="row">
+    <!-- タスク状況のチャート -->
+    <div class="col-md-6">
+        <canvas id="taskStatusChart"></canvas>
+    </div>
+    
+    <!-- 完了タスク、未完了タスク、レビュー数 -->
+    <div class="col-md-6">
+        <div class="card mb-3">
+            <div class="card-body">
+                <h5 class="card-title">完了のタスク</h5>
+                <p class="card-text display-4 text-success">{{ completed_tasks }}</p>
+            </div>
+        </div>
+        <div class="card mb-3">
+            <div class="card-body">
+                <h5 class="card-title">未完了のタスク</h5>
+                <p class="card-text display-4 text-danger">{{ in_progress_tasks + pending_tasks }}</p>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">あなたのレビュー数</h5>
+                <p class="card-text display-4">{{ review_count }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ユーザーのタスク一覧 -->
+<h2 class="mt-5">あなたのタスク</h2>
+
+{% if tasks %}
+<table class="table table-bordered table-striped">
+    <thead class="table-dark">
+        <tr>
+            <th>タイトル</th>
+            <th>詳細</th>
+            <th>状態</th>
+            <th>期限</th>
+            <th>作成日時</th>
+            <th>操作</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for task in tasks %}
+        <tr>
+            <td>{{ task.title }}</td>
+            <td>{{ task.description }}</td>
+            <td>{{ task.status }}</td>
+            <td>{{ task.due_date.strftime('%Y-%m-%d %H:%M') if task.due_date else 'なし' }}</td>
+            <td>{{ task.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+            <td>
+                <a href="{{ url_for('show_task', task_id=task.id) }}" class="btn btn-info btn-sm">詳細</a>
+                <a href="{{ url_for('edit_task', task_id=task.id) }}" class="btn btn-warning btn-sm">編集</a>
+                <form action="{{ url_for('delete_task', task_id=task.id) }}" method="POST" style="display:inline;" onsubmit="return confirm('本当にこのタスクを削除しますか？');">
+                    <button type="submit" class="btn btn-danger btn-sm">削除</button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<!-- 期限が近いタスクの通知 -->
+<div class="mt-5">
+    <h2>期限が近いタスク</h2>
+    {% if upcoming_tasks %}
+    <ul class="list-group">
+        {% for task in upcoming_tasks %}
+        <li class="list-group-item">
+            <strong>{{ task.title }}</strong> - 期限: {{ task.due_date.strftime('%Y-%m-%d %H:%M') }}
+            <a href="{{ url_for('show_task', task_id=task.id) }}" class="btn btn-sm btn-primary float-end">詳細</a>
+        </li>
+        {% endfor %}
+    </ul>
+    {% else %}
+    <p>期限が近いタスクはありません。</p>
+    {% endif %}
+</div>
+
+<!-- 期限切れのタスクの通知 -->
+<div class="mt-5 mb-5">
+    <h2>期限切れのタスク</h2>
+    {% if overdue_tasks %}
+    <ul class="list-group">
+        {% for task in overdue_tasks %}
+        <li class="list-group-item">
+            <strong>{{ task.title }}</strong> - 期限: {{ task.due_date.strftime('%Y-%m-%d %H:%M') }}
+            <a href="{{ url_for('show_task', task_id=task.id) }}" class="btn btn-sm btn-danger float-end">詳細</a>
+        </li>
+        {% endfor %}
+    </ul>
+    {% else %}
+    <p>期限切れのタスクはありません。</p>
+    {% endif %}
+</div>
+
+{% else %}
+<p>現在タスクはありません。</p>
+{% endif %}
+
+<!-- Chart.js のスクリプト -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // サーバーサイドデータをJSONとして埋め込む
+    const taskData = {
+        labels: ['進行中', '完了', '保留中'],
+        datasets: [{
+            data: JSON.parse('{{ [in_progress_tasks|default(0), completed_tasks|default(0), pending_tasks|default(0)]|tojson|safe }}'),
+            backgroundColor: ['#ffc107', '#28a745', '#6c757d']
+        }]
+    };
+
+    // チャートの設定
+    const config = {
+        type: 'doughnut',
+        data: taskData,
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                }
+            }
+        },
+    };
+
+    // チャートの描画
+    const taskStatusChart = new Chart(
+        document.getElementById('taskStatusChart'),
+        config
+    );
+</script>
+
+
+{% endblock %}

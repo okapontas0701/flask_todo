@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h1>タスク作成</h1>
+
+<!-- エラーメッセージの表示 -->
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        {% for category, message in messages %}
+            <div class="alert alert-{{ category }}" role="alert">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+{% endwith %}
+
+<form action="/tasks/new" method="POST" id="taskForm" class="needs-validation" novalidate>
+    <!-- タイトル -->
+    <div class="mb-3">
+        <label for="title" class="form-label">タイトル</label>
+        <input
+            type="text"
+            name="title"
+            class="form-control"
+            id="title"
+            required
+            maxlength="100"
+            placeholder="タスクのタイトルを入力してください">
+        <div class="invalid-feedback">
+            タイトルは必須項目です（最大100文字）。
+        </div>
+    </div>
+    <!-- 詳細 -->
+    <div class="mb-3">
+        <label for="description" class="form-label">詳細</label>
+        <textarea
+            name="description"
+            class="form-control"
+            id="description"
+            rows="3"
+            required
+            placeholder="タスクの詳細を入力してください"></textarea>
+        <div class="invalid-feedback">
+            詳細は必須項目です。
+        </div>
+    </div>
+    <!-- 状態 -->
+    <div class="mb-3">
+        <label for="status" class="form-label">状態</label>
+        <select name="status" class="form-select" id="status" required>
+            <option value="" selected disabled>選択してください</option>
+            <option value="pending">Pending</option>
+            <option value="in_progress">In Progress</option>
+            <option value="completed">Completed</option>
+        </select>
+        <div class="invalid-feedback">
+            状態を選択してください。
+        </div>
+    </div>
+    <!-- 期限 -->
+    <div class="mb-3">
+        <label for="due_date" class="form-label">期限</label>
+        <input
+            type="datetime-local"
+            name="due_date"
+            class="form-control"
+            id="due_date"
+            required>
+        <div class="invalid-feedback">
+            有効な日時を入力してください。
+        </div>
+    </div>
+    <!-- ボタン -->
+    <button type="submit" class="btn btn-primary">タスクを作成</button>
+</form>
+
+<!-- バリデーション用のスクリプト -->
+<script>
+    (function () {
+        'use strict';
+
+        const form = document.getElementById('taskForm');
+        form.addEventListener('submit', function (event) {
+            if (!form.checkValidity()) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+            form.classList.add('was-validated');
+        }, false);
+    })();
+</script>
+
+{% endblock %}
